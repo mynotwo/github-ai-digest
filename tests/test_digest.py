@@ -51,3 +51,40 @@ def test_parse_stars_no_comma():
 def test_parse_stars_zero_on_missing():
     from digest import parse_stars
     assert parse_stars("no stars here") == 0
+
+
+def test_is_ai_repo_matches_name():
+    from digest import is_ai_repo
+    assert is_ai_repo({"name": "openai/gpt-5-tools", "description": ""}) is True
+
+
+def test_is_ai_repo_matches_description():
+    from digest import is_ai_repo
+    assert is_ai_repo({"name": "cool/project", "description": "RAG pipeline for documents"}) is True
+
+
+def test_is_ai_repo_no_match():
+    from digest import is_ai_repo
+    assert is_ai_repo({"name": "torvalds/linux", "description": "Linux kernel source tree"}) is False
+
+
+def test_is_ai_repo_case_insensitive():
+    from digest import is_ai_repo
+    assert is_ai_repo({"name": "foo/bar", "description": "An LLM-based summarizer"}) is True
+
+
+def test_filter_ai_repos_keeps_ai():
+    from digest import filter_ai_repos
+    repos = [
+        {"name": "openai/gpt-5-tools", "description": "GPT-5 API", "stars_today": 500, "url": ""},
+        {"name": "torvalds/linux", "description": "kernel", "stars_today": 300, "url": ""},
+        {"name": "anthropic/mcp-python", "description": "MCP SDK", "stars_today": 200, "url": ""},
+    ]
+    result = filter_ai_repos(repos)
+    assert len(result) == 2
+    assert all(r["name"] != "torvalds/linux" for r in result)
+
+
+def test_filter_ai_repos_empty_input():
+    from digest import filter_ai_repos
+    assert filter_ai_repos([]) == []

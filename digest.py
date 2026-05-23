@@ -47,3 +47,14 @@ def parse_trending(html: str) -> list[dict]:
             "url": f"https://github.com/{full_name}",
         })
     return repos
+
+
+def is_ai_repo(repo: dict) -> bool:
+    """Return True if repo name or description contains any AI keyword."""
+    text = (repo["name"] + " " + repo["description"]).lower()
+    return any(kw in text for kw in AI_KEYWORDS)
+
+
+def filter_ai_repos(repos: list[dict]) -> list[dict]:
+    """Keep only repos that match AI_KEYWORDS."""
+    return [r for r in repos if is_ai_repo(r)]
