@@ -1,8 +1,6 @@
 """Tests for digest.py"""
 from __future__ import annotations
-import os
 from pathlib import Path
-import pytest
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "trending.html"
 
