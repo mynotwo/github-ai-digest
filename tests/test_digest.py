@@ -96,3 +96,39 @@ def test_is_ai_repo_no_false_positive_on_substring():
     assert is_ai_repo({"name": "foo/railway", "description": "Train scheduling"}) is False
     # "repair" contains "ai" as substring
     assert is_ai_repo({"name": "foo/repair-tool", "description": "Fix things"}) is False
+
+
+def test_build_html_contains_repo_name():
+    from digest import build_html
+    repos = [{"name": "openai/gpt5", "description": "test", "stars_today": 100, "url": "https://github.com/openai/gpt5"}]
+    html = build_html(repos)
+    assert "openai/gpt5" in html
+    assert "https://github.com/openai/gpt5" in html
+
+
+def test_build_html_shows_star_count():
+    from digest import build_html
+    repos = [{"name": "foo/bar", "description": "", "stars_today": 1234, "url": "https://github.com/foo/bar"}]
+    html = build_html(repos)
+    assert "1,234" in html
+
+
+def test_build_html_truncates_long_description():
+    from digest import build_html
+    long_desc = "x" * 200
+    repos = [{"name": "foo/bar", "description": long_desc, "stars_today": 1, "url": ""}]
+    html = build_html(repos)
+    assert "x" * 121 not in html  # truncated at 120 + ellipsis
+
+
+def test_build_html_empty_repos_message():
+    from digest import build_html
+    html = build_html([])
+    assert "No AI" in html
+
+
+def test_build_subject():
+    from digest import build_subject
+    from datetime import date
+    subject = build_subject(date(2026, 5, 23))
+    assert subject == "🤖 AI/LLM GitHub Top 5 · 2026-05-23"

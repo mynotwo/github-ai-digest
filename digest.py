@@ -62,3 +62,37 @@ def is_ai_repo(repo: dict) -> bool:
 def filter_ai_repos(repos: list[dict]) -> list[dict]:
     """Keep only repos that match AI_KEYWORDS."""
     return [r for r in repos if is_ai_repo(r)]
+
+
+def build_subject(today: date) -> str:
+    return f"🤖 AI/LLM GitHub Top 5 · {today.isoformat()}"
+
+
+def build_html(repos: list[dict]) -> str:
+    """Build HTML email body for the given repo list (≤5 expected)."""
+    today = date.today().isoformat()
+    if not repos:
+        body = "<p>No AI/LLM repos in today's GitHub Trending.</p>"
+    else:
+        rows = ""
+        for i, r in enumerate(repos, 1):
+            desc = r["description"]
+            if len(desc) > 120:
+                desc = desc[:120] + "…"
+            rows += (
+                f'<tr><td style="padding:12px 0;border-bottom:1px solid #eee;">'
+                f'<strong>{i}. <a href="{r["url"]}">{r["name"]}</a></strong><br>'
+                f'<span style="color:#888;">+{r["stars_today"]:,} ⭐ today</span><br>'
+                f'<span style="color:#444;">{desc}</span>'
+                f"</td></tr>"
+            )
+        body = f'<table style="width:100%;border-collapse:collapse;">{rows}</table>'
+
+    return (
+        "<!DOCTYPE html><html>"
+        '<body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">'
+        f"<h2>🤖 AI/LLM GitHub Top 5 · {today}</h2>"
+        f"{body}"
+        '<p style="color:#999;font-size:12px;">Source: github.com/trending?since=daily</p>'
+        "</body></html>"
+    )
