@@ -35,7 +35,7 @@ def parse_trending(html: str) -> list[dict]:
         link = article.select_one("h2 a")
         if not link:
             continue
-        full_name = link["href"].lstrip("/")
+        full_name = link.get("href", "").lstrip("/")
         desc_el = article.select_one("p")
         description = desc_el.get_text(strip=True) if desc_el else ""
         star_el = article.select_one("span.d-inline-block.float-sm-right")
