@@ -97,3 +97,59 @@ def build_html(repos: list[dict]) -> str:
         '<p style="color:#999;font-size:12px;">Source: github.com/trending?since=daily</p>'
         "</body></html>"
     )
+
+
+def send_email(
+    html: str,
+    subject: str,
+    gmail_user: str,
+    gmail_app_password: str,
+    notify_email: str,
+) -> None:
+    """Send HTML email via Gmail SMTP SSL."""
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = gmail_user
+    msg["To"] = notify_email
+    msg.attach(MIMEText(html, "html"))
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(gmail_user, gmail_app_password)
+        smtp.sendmail(gmail_user, notify_email, msg.as_string())
+
+
+def fetch_trending(since: str = "daily") -> list[dict]:
+    """Fetch and parse GitHub Trending. Raises on HTTP error."""
+    url = f"https://github.com/trending?since={since}"
+    r = requests.get(url, headers={"User-Agent": "github-ai-digest/1.0"}, timeout=15)
+    r.raise_for_status()
+    return parse_trending(r.text)
+
+
+def main() -> None:
+    gmail_user = os.environ["GMAIL_USER"]
+    gmail_app_password = os.environ["GMAIL_APP_PASSWORD"]
+    notify_email = os.environ["NOTIFY_EMAIL"]
+
+    try:
+        all_repos = fetch_trending()
+    except Exception as exc:
+        send_email(
+            f"<p>Scrape failed: {exc}</p>",
+            "⚠️ github-ai-digest scrape error",
+            gmail_user,
+            gmail_app_password,
+            notify_email,
+        )
+        sys.exit(1)
+
+    ai_repos = filter_ai_repos(all_repos)
+    top5 = sorted(ai_repos, key=lambda r: r["stars_today"], reverse=True)[:5]
+    today = date.today()
+    html = build_html(top5)
+    subject = build_subject(today)
+    send_email(html, subject, gmail_user, gmail_app_password, notify_email)
+    print(f"Sent: {len(top5)} repos · {subject}")
+
+
+if __name__ == "__main__":
+    main()
