@@ -134,7 +134,7 @@ def main() -> None:
         all_repos = fetch_trending()
     except Exception as exc:
         send_email(
-            f"<p>Scrape failed: {exc}</p>",
+            f"<p>Scrape failed: {escape(str(exc))}</p>",
             "⚠️ github-ai-digest scrape error",
             gmail_user,
             gmail_app_password,
