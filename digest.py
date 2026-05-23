@@ -8,6 +8,7 @@ import sys
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape
 
 import requests
 from bs4 import BeautifulSoup
@@ -81,9 +82,9 @@ def build_html(repos: list[dict]) -> str:
                 desc = desc[:120] + "…"
             rows += (
                 f'<tr><td style="padding:12px 0;border-bottom:1px solid #eee;">'
-                f'<strong>{i}. <a href="{r["url"]}">{r["name"]}</a></strong><br>'
+                f'<strong>{i}. <a href="{escape(r["url"])}">{escape(r["name"])}</a></strong><br>'
                 f'<span style="color:#888;">+{r["stars_today"]:,} ⭐ today</span><br>'
-                f'<span style="color:#444;">{desc}</span>'
+                f'<span style="color:#444;">{escape(desc)}</span>'
                 f"</td></tr>"
             )
         body = f'<table style="width:100%;border-collapse:collapse;">{rows}</table>'
