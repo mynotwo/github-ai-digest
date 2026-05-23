@@ -17,6 +17,10 @@ AI_KEYWORDS = {
     "llm", "agent", "mcp", "claude", "openai", "gpt", "copilot",
     "langchain", "rag", "embedding", "transformer", "diffusion", "ai", "model",
 }
+_AI_PATTERN = re.compile(
+    r"\b(" + "|".join(re.escape(kw) for kw in AI_KEYWORDS) + r")\b",
+    re.IGNORECASE,
+)
 
 
 def parse_stars(text: str) -> int:
@@ -50,9 +54,9 @@ def parse_trending(html: str) -> list[dict]:
 
 
 def is_ai_repo(repo: dict) -> bool:
-    """Return True if repo name or description contains any AI keyword."""
-    text = (repo["name"] + " " + repo["description"]).lower()
-    return any(kw in text for kw in AI_KEYWORDS)
+    """Return True if repo name or description contains any AI keyword (whole word)."""
+    text = repo["name"] + " " + (repo.get("description") or "")
+    return bool(_AI_PATTERN.search(text))
 
 
 def filter_ai_repos(repos: list[dict]) -> list[dict]:

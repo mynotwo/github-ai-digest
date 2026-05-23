@@ -88,3 +88,11 @@ def test_filter_ai_repos_keeps_ai():
 def test_filter_ai_repos_empty_input():
     from digest import filter_ai_repos
     assert filter_ai_repos([]) == []
+
+
+def test_is_ai_repo_no_false_positive_on_substring():
+    from digest import is_ai_repo
+    # "railway" contains "ai" as substring but not as whole word
+    assert is_ai_repo({"name": "foo/railway", "description": "Train scheduling"}) is False
+    # "repair" contains "ai" as substring
+    assert is_ai_repo({"name": "foo/repair-tool", "description": "Fix things"}) is False
