@@ -22,7 +22,17 @@ Net: local side only ever READS; the write credential never leaves GitHub.
 - **Detection = presence of `List-Unsubscribe` header** (not a domain list, not
   Gmail's promo category). Catches every new bulk sender automatically — the
   root cause of "没怎么删" was the old fixed list + exact-domain match missing
-  subdomains.
+  subdomains. NOTE: `category:promotions` was tried first but this account has
+  NO Gmail category labels (classifier off) — it returned 0. So we fall back to
+  List-Unsubscribe.
+- **Ad classification via local Claude.** Raw List-Unsubscribe is too broad
+  (receipts, bank statements, even a GitGuardian security alert carry it), so
+  the user "分不出来". `gmail_scan.py` sends the sender+subject list to the
+  hermes proxy (`http://127.0.0.1:8766/v1/messages`, Claude via subscription,
+  no API key) in ONE call and the DM lists only the ones judged pure ads. On
+  proxy failure it degrades to listing everything (flagged in the DM text).
+  `candidates.json` = exactly the flagged list shown (gmail-del indexes it);
+  `all_senders.json` keeps the full scan for reference.
 - **Scan scope: `in:inbox newer_than:30d`.** Inbox = the clutter you actually
   see; 30d bounds the per-message metadata fetches (one GET per message).
 - **Group by full From-domain.** `email.openai.com` and `openai.com` stay
