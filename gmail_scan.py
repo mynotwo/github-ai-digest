@@ -145,7 +145,8 @@ def build_dm(senders: list[dict], classified: bool, total_scanned: int) -> str:
     if len(senders) > MAX_SENDERS_IN_DM:
         lines.append(f"…还有 {len(senders) - MAX_SENDERS_IN_DM} 个（见 candidates.json）")
     lines.append("")
-    lines.append("确认删：回复 gmail-del all（全删）或 gmail-del 1 3 5（只删这几个）")
+    lines.append("确认删：给 Rimemosa 发「gmail-del all」（全删）或「gmail-del 1 3 5」（只删这几个）")
+    lines.append("（本号只推送、不收消息，命令请发 Rimemosa）")
     return "\n".join(lines)
 
 
