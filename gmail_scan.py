@@ -21,6 +21,9 @@ CANDIDATES_FILE = STATE_DIR / "candidates.json"
 
 LARK_OPEN_ID = "ou_694f6600030c2fa33db21cf0ba87b7b1"  # Audrey, lark-cli app namespace
 GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me"
+# This account has no Gmail category labels, so category:promotions is empty.
+# Fall back to List-Unsubscribe (= bulk/list mail, not personal); the DM shows
+# a sample subject per sender so you can tell ads from receipts at a glance.
 SCAN_QUERY = "in:inbox newer_than:30d"
 MAX_SENDERS_IN_DM = 25
 
@@ -93,9 +96,11 @@ def scan(token: str) -> dict[str, dict]:
 def build_dm(senders: list[dict]) -> str:
     """Numbered sender list + reply instructions."""
     total = sum(s["count"] for s in senders)
-    lines = [f"📬 本周批量邮件候选（{total} 封，{len(senders)} 个发件人）："]
+    lines = [f"📬 本周广告邮件候选（{total} 封，{len(senders)} 个发件人）："]
     for i, s in enumerate(senders[:MAX_SENDERS_IN_DM], 1):
-        lines.append(f"{i}. {s['domain']} — {s['count']} 封")
+        subj = s.get("sample_subject", "")
+        tail = f"「{subj}」" if subj else ""
+        lines.append(f"{i}. {s['domain']} — {s['count']} 封 {tail}")
     if len(senders) > MAX_SENDERS_IN_DM:
         lines.append(f"…还有 {len(senders) - MAX_SENDERS_IN_DM} 个（见 candidates.json）")
     lines.append("")
