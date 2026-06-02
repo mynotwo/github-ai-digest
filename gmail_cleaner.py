@@ -1,6 +1,12 @@
-"""Weekly Gmail cleanup — trash promotional emails matching known ad sender domains."""
+"""Gmail cleanup — trash mail from given sender domains.
+
+Domains come from --senders (comma-separated), as dispatched by the
+gmail-delete GitHub workflow after you confirm a scan. Falls back to the
+built-in DELETE_DOMAINS list when --senders is omitted.
+"""
 from __future__ import annotations
 
+import argparse
 import imaplib
 import os
 import sys
@@ -53,13 +59,13 @@ def trash_uid(mail: imaplib.IMAP4_SSL, uid: bytes) -> None:
     mail.uid("STORE", uid, "+FLAGS", "\\Deleted")
 
 
-def run_cleanup(gmail_user: str, gmail_app_password: str) -> int:
+def run_cleanup(gmail_user: str, gmail_app_password: str, domains: set[str]) -> int:
     mail = imaplib.IMAP4_SSL(IMAP_HOST, IMAP_PORT)
     mail.login(gmail_user, gmail_app_password)
     mail.select('"[Gmail]/All Mail"')
 
     total = 0
-    for domain in DELETE_DOMAINS:
+    for domain in domains:
         uids = _search_from_domain(mail, domain)
         for uid in uids:
             trash_uid(mail, uid)
@@ -71,10 +77,20 @@ def run_cleanup(gmail_user: str, gmail_app_password: str) -> int:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Trash Gmail by sender domain.")
+    parser.add_argument("--senders", default="",
+                        help="comma-separated sender domains; defaults to DELETE_DOMAINS")
+    args = parser.parse_args()
+
+    if args.senders.strip():
+        domains = {s.strip().lstrip("@").lower() for s in args.senders.split(",") if s.strip()}
+    else:
+        domains = DELETE_DOMAINS
+
     gmail_user = os.environ["GMAIL_USER"]
     gmail_app_password = os.environ["GMAIL_APP_PASSWORD"]
-    trashed = run_cleanup(gmail_user, gmail_app_password)
-    print(f"Trashed {trashed} promotional emails.")
+    trashed = run_cleanup(gmail_user, gmail_app_password, domains)
+    print(f"Trashed {trashed} emails from {len(domains)} sender domain(s).")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+name: Gmail Delete (on demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      senders:
+        description: 'Comma-separated sender domains to trash (e.g. pinterest.com,coursera.org)'
+        required: true
+        type: string
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Trash selected senders
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python gmail_cleaner.py --senders "${{ inputs.senders }}"
